@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrivialDI", "TrivialDI\TrivialDI.csproj", "{7FC45D8E-AE1D-4EA3-A1AC-A2942142DBD5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrivialDITests", "TrivialDITests\TrivialDITests.csproj", "{20340CB4-C4DE-4101-A95D-5A6817E57D78}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7FC45D8E-AE1D-4EA3-A1AC-A2942142DBD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FC45D8E-AE1D-4EA3-A1AC-A2942142DBD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FC45D8E-AE1D-4EA3-A1AC-A2942142DBD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FC45D8E-AE1D-4EA3-A1AC-A2942142DBD5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20340CB4-C4DE-4101-A95D-5A6817E57D78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20340CB4-C4DE-4101-A95D-5A6817E57D78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20340CB4-C4DE-4101-A95D-5A6817E57D78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20340CB4-C4DE-4101-A95D-5A6817E57D78}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
