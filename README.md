@@ -7,7 +7,7 @@ Uses an ambient context pattern, with the "using" clause. Useful when constructo
 
 ### Example
 
-```chsharp
+```cs
 using (default(Person).Map(() => new Employee()))
 {
 
