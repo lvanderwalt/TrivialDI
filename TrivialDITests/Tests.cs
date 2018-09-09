@@ -80,7 +80,7 @@ namespace TrivialDITests
       {
         var owner = GivenAnOwner();
         var child = WhenOwnerIsAskedForNewChild(owner, sourceType);
-        ThenTheClassMustBe(child);
+        ThenTheInstanceMustBe(child);
       }
     }
 
@@ -94,7 +94,7 @@ namespace TrivialDITests
         var owner = GivenAnOwner();
         WhenANameAssignedToChild(owner.Child, "test");
         ThenTheNameMustBe("test", owner.Child.Name);
-        ThenTheClassMustBe(owner.Child);
+        ThenTheInstanceMustBe(owner.Child);
       }
     }
 
@@ -105,17 +105,17 @@ namespace TrivialDITests
     public void IsolatedOverridesMustNotAffectEachOther(OverrideTypeEnum overrideType, OverrideSourceEnum sourceType)
     {
       var owner = GivenAnOwner();
-      INamedClass named = null;
+      INamedClass instance = null;
       using (GivenAnOverride(overrideType, source: sourceType, target: OverrideWithEnum.DerivedA))
       {
-        named = WhenOwnerIsAskedForNewChild(owner, sourceType);
-        ThenTheClassMustBe(named, OverrideWithEnum.DerivedA);
+        instance = WhenOwnerIsAskedForNewChild(owner, sourceType);
+        ThenTheInstanceMustBe(instance, OverrideWithEnum.DerivedA);
       }
 
       using (GivenAnOverride(overrideType, source: sourceType, target: OverrideWithEnum.DerivedB))
       {
-        named = WhenOwnerIsAskedForNewChild(owner, sourceType);
-        ThenTheClassMustBe(named, OverrideWithEnum.DerivedB);
+        instance = WhenOwnerIsAskedForNewChild(owner, sourceType);
+        ThenTheInstanceMustBe(instance, OverrideWithEnum.DerivedB);
       }
     }
 
@@ -126,7 +126,7 @@ namespace TrivialDITests
       {
         var owner = GivenAnOwner();
         var child = GivenChildCreatedByOwner(owner);
-        ThenTheClassMustBe(child, OverrideWithEnum.DerivedA);
+        ThenTheInstanceMustBe(child, OverrideWithEnum.DerivedA);
         child = GivenAResolutionOutsideAnOwner();
         ThenTheClassMustBeTheBaseType(child);
       }
@@ -143,15 +143,15 @@ namespace TrivialDITests
       {
         var owner = GivenAnOwner();
 
-        INamedClass named = null;
+        INamedClass instance = null;
         using (GivenAnOverride(overrideType, sourceType, OverrideWithEnum.DerivedB))
         {
-          named = WhenOwnerIsAskedForNewChild(owner, sourceType);
-          ThenTheClassMustBe(named, OverrideWithEnum.DerivedA);
+          instance = WhenOwnerIsAskedForNewChild(owner, sourceType);
+          ThenTheInstanceMustBe(instance, OverrideWithEnum.DerivedA);
         }
 
-        named = WhenOwnerIsAskedForNewChild(owner, sourceType);
-        ThenTheClassMustBe(named, OverrideWithEnum.DerivedA);
+        instance = WhenOwnerIsAskedForNewChild(owner, sourceType);
+        ThenTheInstanceMustBe(instance, OverrideWithEnum.DerivedA);
       }
     }
 
@@ -229,17 +229,17 @@ namespace TrivialDITests
       }
     }
 
-    private void ThenTheClassMustBe(INamedClass named, OverrideWithEnum expected = OverrideWithEnum.DerivedA)
+    private void ThenTheInstanceMustBe(INamedClass instance, OverrideWithEnum expected = OverrideWithEnum.DerivedA)
     {
-      Assert.IsNotNull(named);
+      Assert.IsNotNull(instance);
       Type expectedType = expected == OverrideWithEnum.DerivedA ? typeof(DerivedA) : typeof(DerivedB);
       switch (expected)
       {
         case OverrideWithEnum.DerivedA:
-          Assert.IsTrue(named.GetType() == expectedType);
+          Assert.IsTrue(instance.GetType() == expectedType);
           break;
         case OverrideWithEnum.DerivedB:
-          Assert.IsTrue(named.GetType() == expectedType);
+          Assert.IsTrue(instance.GetType() == expectedType);
           break;
         default:
           throw new NotImplementedException();
