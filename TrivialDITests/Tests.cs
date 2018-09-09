@@ -56,12 +56,6 @@ namespace TrivialDITests
     }
 
     [Test]
-    public void ResolvingATypeWithNoOverrides()
-    {
-      Assert.IsTrue(default(ChildBase).Resolve() is ChildBase);
-    }
-
-    [Test]
     public void ResolvingAnInstanceWithNoOverrides()
     {
       Assert.AreEqual(typeof(ChildBase), default(ChildBase).Resolve().GetType());
