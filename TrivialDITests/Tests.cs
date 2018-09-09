@@ -146,7 +146,6 @@ namespace TrivialDITests
         IChild child = null;
         using (GivenAnOverride(overrideType, sourceType, OverrideWithEnum.ChildB))
         {
-          //todo: should also work inside an Owner, and for interfaces
           child = WhenOwnerIsAskedForNewChild(owner, sourceType);
           ThenTheChildMustBe(child, OverrideWithEnum.ChildA);
         }
