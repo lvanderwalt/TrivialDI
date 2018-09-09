@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace TrivialDITests
@@ -51,7 +53,7 @@ namespace TrivialDITests
     {
       var owner = GivenAnOwner();
       WhenANameAssignedToChild(owner.Child, "test");
-      ThenTheClassMustBeTheBaseType(owner.Child);
+      ThenInstanceMustBeTheBaseType(owner.Child);
       ThenTheNameMustBe("test", owner.Child.Name);
     }
 
@@ -128,7 +130,7 @@ namespace TrivialDITests
         var child = GivenChildCreatedByOwner(owner);
         ThenTheInstanceMustBe(child, OverrideWithEnum.DerivedA);
         child = GivenAResolutionOutsideAnOwner();
-        ThenTheClassMustBeTheBaseType(child);
+        ThenInstanceMustBeTheBaseType(child);
       }
     }
 
@@ -153,6 +155,36 @@ namespace TrivialDITests
         instance = WhenOwnerIsAskedForNewChild(owner, sourceType);
         ThenTheInstanceMustBe(instance, OverrideWithEnum.DerivedA);
       }
+    }
+
+    [TestCase(OverrideTypeEnum.Global, OverrideSourceEnum.Class)]
+    [TestCase(OverrideTypeEnum.ByOwner, OverrideSourceEnum.Class)]
+    [TestCase(OverrideTypeEnum.Global, OverrideSourceEnum.Interface)]
+    [TestCase(OverrideTypeEnum.ByOwner, OverrideSourceEnum.Interface)]
+    public async Task ThreadScopedOverridesMustNotAffectEachOther(OverrideTypeEnum overrideType, OverrideSourceEnum sourceType)
+    {
+      await WhenThreadMapsToXThenThreadResolvesToX(overrideType, sourceType, OverrideWithEnum.DerivedA);
+      await WhenThreadMapsToXThenThreadResolvesToX(overrideType, sourceType, OverrideWithEnum.DerivedB);
+    }
+
+    private async Task WhenThreadMapsToXThenThreadResolvesToX(OverrideTypeEnum overrideType, OverrideSourceEnum sourceType, OverrideWithEnum target)
+    {
+      await Task.Run(() => {
+
+        var owner = GivenAnOwner();
+        var instance = WhenOwnerIsAskedForNewChild(owner, sourceType);
+        ThenInstanceMustBeTheBaseType(instance);
+
+        Console.WriteLine($"mapping to {target}");
+        using (GivenAnOverride(overrideType, source: sourceType, target: target))
+        {
+          Thread.Sleep(500);
+          Console.WriteLine($"resolving for {target}");
+          instance = WhenOwnerIsAskedForNewChild(owner, sourceType);
+          ThenTheInstanceMustBe(instance, target);
+        }
+
+      });      
     }
 
     //**helpers**//
@@ -206,7 +238,7 @@ namespace TrivialDITests
     }
 
 
-    private void ThenTheClassMustBeTheBaseType(BaseClass instance)
+    private void ThenInstanceMustBeTheBaseType(object instance)
     {
       Assert.IsTrue(instance.GetType() == typeof(BaseClass));
     }
