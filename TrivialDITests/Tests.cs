@@ -23,27 +23,27 @@ namespace TrivialDITests
 
     public enum OverrideWithEnum
     {
-      ChildA,
-      ChildB
+      DerivedA,
+      DerivedB
     }
 
     [Test]
     public void ExampleUsage()
     {
-      using (default(ChildBase).Map(() => new ChildB()))
+      using (default(BaseClass).Map(() => new DerivedB()))
       {
-        //The following code runs within the ambient context where ChildBase resolves to ChildB.
+        //The following code runs within the ambient context where BaseClass resolves to DerivedB.
         //It can be in another class, and has no dependency on the "using" clause. 
         //It also has no direct reference to the TrivialDI class.
 
-        var instance = default(ChildBase).Resolve();
-        Assert.AreEqual(typeof(ChildB), instance.GetType());
+        var instance = default(BaseClass).Resolve();
+        Assert.AreEqual(typeof(DerivedB), instance.GetType());
 
       }
 
-      //outside the "using" scope: resolves to ChildBase again
-      var instance2 = default(ChildBase).Resolve();
-      Assert.AreEqual(typeof(ChildBase), instance2.GetType());
+      //outside the "using" scope: resolves to BaseClass again
+      var instance2 = default(BaseClass).Resolve();
+      Assert.AreEqual(typeof(BaseClass), instance2.GetType());
     }
     
     [Test]
@@ -51,22 +51,22 @@ namespace TrivialDITests
     {
       var owner = GivenAnOwner();
       WhenANameAssignedToChild(owner.Child, "test");
-      ThenTheChildMustBeTheBaseType(owner.Child);
+      ThenTheClassMustBeTheBaseType(owner.Child);
       ThenTheNameMustBe("test", owner.Child.Name);
     }
 
     [Test]
     public void ResolvingAnInstanceWithNoOverrides()
     {
-      Assert.AreEqual(typeof(ChildBase), default(ChildBase).Resolve().GetType());
+      Assert.AreEqual(typeof(BaseClass), default(BaseClass).Resolve().GetType());
     }
 
     [Test]
     public void ResolvingATypeByInterface()
     {
-      using (default(IChild).Map(() => new ChildBase()))
+      using (default(INamedClass).Map(() => new BaseClass()))
       {
-        Assert.IsTrue(default(IChild).Resolve() is ChildBase);
+        Assert.IsTrue(default(INamedClass).Resolve() is BaseClass);
       }
     }
 
@@ -80,7 +80,7 @@ namespace TrivialDITests
       {
         var owner = GivenAnOwner();
         var child = WhenOwnerIsAskedForNewChild(owner, sourceType);
-        ThenTheChildMustBe(child);
+        ThenTheClassMustBe(child);
       }
     }
 
@@ -94,7 +94,7 @@ namespace TrivialDITests
         var owner = GivenAnOwner();
         WhenANameAssignedToChild(owner.Child, "test");
         ThenTheNameMustBe("test", owner.Child.Name);
-        ThenTheChildMustBe(owner.Child);
+        ThenTheClassMustBe(owner.Child);
       }
     }
 
@@ -105,30 +105,30 @@ namespace TrivialDITests
     public void IsolatedOverridesMustNotAffectEachOther(OverrideTypeEnum overrideType, OverrideSourceEnum sourceType)
     {
       var owner = GivenAnOwner();
-      IChild child = null;
-      using (GivenAnOverride(overrideType, source: sourceType, target: OverrideWithEnum.ChildA))
+      INamedClass named = null;
+      using (GivenAnOverride(overrideType, source: sourceType, target: OverrideWithEnum.DerivedA))
       {
-        child = WhenOwnerIsAskedForNewChild(owner, sourceType);
-        ThenTheChildMustBe(child, OverrideWithEnum.ChildA);
+        named = WhenOwnerIsAskedForNewChild(owner, sourceType);
+        ThenTheClassMustBe(named, OverrideWithEnum.DerivedA);
       }
 
-      using (GivenAnOverride(overrideType, source: sourceType, target: OverrideWithEnum.ChildB))
+      using (GivenAnOverride(overrideType, source: sourceType, target: OverrideWithEnum.DerivedB))
       {
-        child = WhenOwnerIsAskedForNewChild(owner, sourceType);
-        ThenTheChildMustBe(child, OverrideWithEnum.ChildB);
+        named = WhenOwnerIsAskedForNewChild(owner, sourceType);
+        ThenTheClassMustBe(named, OverrideWithEnum.DerivedB);
       }
     }
 
     [Test]
     public void OwnerOverrideOnlyAppliesWhenResolvedByOwner()
     {
-      using (GivenAnOverride(OverrideTypeEnum.ByOwner, target: OverrideWithEnum.ChildA))
+      using (GivenAnOverride(OverrideTypeEnum.ByOwner, target: OverrideWithEnum.DerivedA))
       {
         var owner = GivenAnOwner();
         var child = GivenChildCreatedByOwner(owner);
-        ThenTheChildMustBe(child, OverrideWithEnum.ChildA);
+        ThenTheClassMustBe(child, OverrideWithEnum.DerivedA);
         child = GivenAResolutionOutsideAnOwner();
-        ThenTheChildMustBeTheBaseType(child);
+        ThenTheClassMustBeTheBaseType(child);
       }
     }
 
@@ -139,19 +139,19 @@ namespace TrivialDITests
     [TestCase(OverrideTypeEnum.ByOwner, OverrideSourceEnum.Interface)]
     public void NestedResolveMustUseOverrideFromOuterScope(OverrideTypeEnum overrideType, OverrideSourceEnum sourceType)
     {
-      using (GivenAnOverride(overrideType, sourceType, OverrideWithEnum.ChildA))
+      using (GivenAnOverride(overrideType, sourceType, OverrideWithEnum.DerivedA))
       {
         var owner = GivenAnOwner();
 
-        IChild child = null;
-        using (GivenAnOverride(overrideType, sourceType, OverrideWithEnum.ChildB))
+        INamedClass named = null;
+        using (GivenAnOverride(overrideType, sourceType, OverrideWithEnum.DerivedB))
         {
-          child = WhenOwnerIsAskedForNewChild(owner, sourceType);
-          ThenTheChildMustBe(child, OverrideWithEnum.ChildA);
+          named = WhenOwnerIsAskedForNewChild(owner, sourceType);
+          ThenTheClassMustBe(named, OverrideWithEnum.DerivedA);
         }
 
-        child = WhenOwnerIsAskedForNewChild(owner, sourceType);
-        ThenTheChildMustBe(child, OverrideWithEnum.ChildA);
+        named = WhenOwnerIsAskedForNewChild(owner, sourceType);
+        ThenTheClassMustBe(named, OverrideWithEnum.DerivedA);
       }
     }
 
@@ -159,26 +159,26 @@ namespace TrivialDITests
 
     private IDisposable GivenAnOverride(OverrideTypeEnum overrideType,
         OverrideSourceEnum source = OverrideSourceEnum.Class,
-        OverrideWithEnum target = OverrideWithEnum.ChildA)
+        OverrideWithEnum target = OverrideWithEnum.DerivedA)
     {
       switch (source)
       {
         case OverrideSourceEnum.Class:
           switch (target)
           {
-            case OverrideWithEnum.ChildA:
-              return GivenAnOverride<ChildBase, ChildA>(overrideType);
-            case OverrideWithEnum.ChildB:
-              return GivenAnOverride<ChildBase, ChildB>(overrideType);
+            case OverrideWithEnum.DerivedA:
+              return GivenAnOverride<BaseClass, DerivedA>(overrideType);
+            case OverrideWithEnum.DerivedB:
+              return GivenAnOverride<BaseClass, DerivedB>(overrideType);
           }
           break;
         case OverrideSourceEnum.Interface:
           switch (target)
           {
-            case OverrideWithEnum.ChildA:
-              return GivenAnOverride<IChild, ChildA>(overrideType);
-            case OverrideWithEnum.ChildB:
-              return GivenAnOverride<IChild, ChildB>(overrideType);
+            case OverrideWithEnum.DerivedA:
+              return GivenAnOverride<INamedClass, DerivedA>(overrideType);
+            case OverrideWithEnum.DerivedB:
+              return GivenAnOverride<INamedClass, DerivedB>(overrideType);
           }
           break;
       }
@@ -186,7 +186,7 @@ namespace TrivialDITests
     }
 
     private IDisposable GivenAnOverride<TSource, TTarget>(OverrideTypeEnum overrideType)
-        where TTarget : ChildBase, TSource, new()
+        where TTarget : BaseClass, TSource, new()
     {
       Func<TTarget> resolver = () => new TTarget();
       switch (overrideType)
@@ -200,23 +200,23 @@ namespace TrivialDITests
     }
 
 
-    private ChildBase GivenChildCreatedByOwner(OwnerWithChild owner)
+    private BaseClass GivenChildCreatedByOwner(OwnerWithChild owner)
     {
       return owner.NewChild();
     }
 
 
-    private void ThenTheChildMustBeTheBaseType(ChildBase child)
+    private void ThenTheClassMustBeTheBaseType(BaseClass instance)
     {
-      Assert.IsTrue(child.GetType() == typeof(ChildBase));
+      Assert.IsTrue(instance.GetType() == typeof(BaseClass));
     }
 
-    private ChildBase GivenAResolutionOutsideAnOwner()
+    private BaseClass GivenAResolutionOutsideAnOwner()
     {
-      return default(ChildBase).Resolve();
+      return default(BaseClass).Resolve();
     }
 
-    private IChild WhenOwnerIsAskedForNewChild(OwnerWithChild owner, OverrideSourceEnum sourceType = OverrideSourceEnum.Class)
+    private INamedClass WhenOwnerIsAskedForNewChild(OwnerWithChild owner, OverrideSourceEnum sourceType = OverrideSourceEnum.Class)
     {
       switch (sourceType)
       {
@@ -229,17 +229,17 @@ namespace TrivialDITests
       }
     }
 
-    private void ThenTheChildMustBe(IChild child, OverrideWithEnum expected = OverrideWithEnum.ChildA)
+    private void ThenTheClassMustBe(INamedClass named, OverrideWithEnum expected = OverrideWithEnum.DerivedA)
     {
-      Assert.IsNotNull(child);
-      Type expectedType = expected == OverrideWithEnum.ChildA ? typeof(ChildA) : typeof(ChildB);
+      Assert.IsNotNull(named);
+      Type expectedType = expected == OverrideWithEnum.DerivedA ? typeof(DerivedA) : typeof(DerivedB);
       switch (expected)
       {
-        case OverrideWithEnum.ChildA:
-          Assert.IsTrue(child.GetType() == expectedType);
+        case OverrideWithEnum.DerivedA:
+          Assert.IsTrue(named.GetType() == expectedType);
           break;
-        case OverrideWithEnum.ChildB:
-          Assert.IsTrue(child.GetType() == expectedType);
+        case OverrideWithEnum.DerivedB:
+          Assert.IsTrue(named.GetType() == expectedType);
           break;
         default:
           throw new NotImplementedException();
@@ -251,7 +251,7 @@ namespace TrivialDITests
       Assert.AreEqual(expected, name);
     }
 
-    private void WhenANameAssignedToChild(ChildBase child, string name)
+    private void WhenANameAssignedToChild(BaseClass child, string name)
     {
       child.Name = name;
     }
@@ -264,39 +264,39 @@ namespace TrivialDITests
 
     class OwnerWithChild
     {
-      public ChildBase Child { get; private set; }
+      public BaseClass Child { get; private set; }
 
       public OwnerWithChild()
       {
-        Child = default(ChildBase).Resolve(this);
+        Child = default(BaseClass).Resolve(this);
       }
 
-      internal ChildBase NewChild()
+      internal BaseClass NewChild()
       {
-        return default(ChildBase).Resolve(this);
+        return default(BaseClass).Resolve(this);
       }
 
-      internal IChild NewChildInterface()
+      internal INamedClass NewChildInterface()
       {
-        return default(IChild).Resolve(this);
+        return default(INamedClass).Resolve(this);
       }
     }
 
-    interface IChild
+    interface INamedClass
     {
       string Name { get; set; }
     }
 
-    class ChildBase : IChild
+    class BaseClass : INamedClass
     {
       public string Name { get; set; }
     }
 
-    class ChildA : ChildBase
+    class DerivedA : BaseClass
     {
     }
 
-    class ChildB : ChildBase
+    class DerivedB : BaseClass
     {
     }
   }
