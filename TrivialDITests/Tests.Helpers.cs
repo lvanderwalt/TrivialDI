@@ -114,28 +114,6 @@ namespace TrivialDITests
       }
     }   
 
-    //todo: remove owner class. No longer needed since owner-mapping removed.
-    /*
-    class Owner
-    {
-      public BaseClass Child { get; private set; }
-
-      public Owner()
-      {
-        Child = default(BaseClass).Resolve();
-      }
-
-      internal BaseClass NewChild()
-      {
-        return default(BaseClass).Resolve();
-      }
-
-      internal INamedClass NewChildInterface()
-      {
-        return default(INamedClass).Resolve();
-      }
-    }*/
-
     interface INamedClass
     {
       string Name { get; set; }

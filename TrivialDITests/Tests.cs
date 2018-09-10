@@ -12,7 +12,7 @@ namespace TrivialDITests
   public partial class Tests
   {
     [SetUp]
-    public void SetupEachTest()
+    public void SetupForEachTest()
     {
       //initialize container to indicate outer thread
       default(object).InitializeDI();
