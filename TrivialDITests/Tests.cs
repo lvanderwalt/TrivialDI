@@ -11,19 +11,19 @@ namespace TrivialDITests
   [TestFixture]
   public partial class Tests
   {
-    public enum OverrideTypeEnum
+    public enum MapType
     {
       Global,
       ByOwner
     };
 
-    public enum OverrideSourceEnum
+    public enum MapSource
     {
       Class,
       Interface
     }
 
-    public enum OverrideWithEnum
+    public enum MapWith
     {
       DerivedA,
       DerivedB
@@ -58,7 +58,7 @@ namespace TrivialDITests
     }
 
     [Test]
-    public void ResolvingAnInstanceWithNoOverrides()
+    public void ResolvingAnInstanceWithNoMaps()
     {
       Assert.AreEqual(typeof(BaseClass), default(BaseClass).Resolve().GetType());
     }
@@ -72,13 +72,13 @@ namespace TrivialDITests
       }
     }
 
-    [TestCase(OverrideTypeEnum.Global, OverrideSourceEnum.Class)]
-    [TestCase(OverrideTypeEnum.ByOwner, OverrideSourceEnum.Class)]
-    [TestCase(OverrideTypeEnum.Global, OverrideSourceEnum.Interface)]
-    [TestCase(OverrideTypeEnum.ByOwner, OverrideSourceEnum.Interface)]
-    public void OveriddenClassTypeMustResolve(OverrideTypeEnum overrideType, OverrideSourceEnum sourceType)
+    [TestCase(MapType.Global, MapSource.Class)]
+    [TestCase(MapType.ByOwner, MapSource.Class)]
+    [TestCase(MapType.Global, MapSource.Interface)]
+    [TestCase(MapType.ByOwner, MapSource.Interface)]
+    public void OveriddenClassTypeMustResolve(MapType mapType, MapSource sourceType)
     {      
-      using (GivenAnOverride(overrideType, sourceType))
+      using (GivenAMap(mapType, sourceType))
       {
         var owner = GivenAnOwner();
         var child = WhenOwnerIsAskedForNewChild(owner, sourceType);
@@ -87,11 +87,11 @@ namespace TrivialDITests
     }
 
 
-    [TestCase(OverrideTypeEnum.Global)]
-    [TestCase(OverrideTypeEnum.ByOwner)]
-    public void OveriddenChildPropertyMustPersist(OverrideTypeEnum overrideType)
+    [TestCase(MapType.Global)]
+    [TestCase(MapType.ByOwner)]
+    public void OveriddenChildPropertyMustPersist(MapType mapType)
     { 
-      using (GivenAnOverride(overrideType))
+      using (GivenAMap(mapType))
       {
         var owner = GivenAnOwner();
         WhenANameAssignedToChild(owner.Child, "test");
@@ -100,96 +100,96 @@ namespace TrivialDITests
       }
     }
 
-    [TestCase(OverrideTypeEnum.Global, OverrideSourceEnum.Class)]
-    [TestCase(OverrideTypeEnum.ByOwner, OverrideSourceEnum.Class)]
-    [TestCase(OverrideTypeEnum.Global, OverrideSourceEnum.Interface)]
-    [TestCase(OverrideTypeEnum.ByOwner, OverrideSourceEnum.Interface)]
-    public void IsolatedOverridesMustNotAffectEachOther(OverrideTypeEnum overrideType, OverrideSourceEnum sourceType)
+    [TestCase(MapType.Global, MapSource.Class)]
+    [TestCase(MapType.ByOwner, MapSource.Class)]
+    [TestCase(MapType.Global, MapSource.Interface)]
+    [TestCase(MapType.ByOwner, MapSource.Interface)]
+    public void IsolatedMapsMustNotAffectEachOther(MapType mapType, MapSource sourceType)
     {
       var owner = GivenAnOwner();
       INamedClass instance = null;
-      using (GivenAnOverride(overrideType, source: sourceType, target: OverrideWithEnum.DerivedA))
+      using (GivenAMap(mapType, source: sourceType, target: MapWith.DerivedA))
       {
         instance = WhenOwnerIsAskedForNewChild(owner, sourceType);
-        ThenTheInstanceMustBe(instance, OverrideWithEnum.DerivedA);
+        ThenTheInstanceMustBe(instance, MapWith.DerivedA);
       }
 
-      using (GivenAnOverride(overrideType, source: sourceType, target: OverrideWithEnum.DerivedB))
+      using (GivenAMap(mapType, source: sourceType, target: MapWith.DerivedB))
       {
         instance = WhenOwnerIsAskedForNewChild(owner, sourceType);
-        ThenTheInstanceMustBe(instance, OverrideWithEnum.DerivedB);
+        ThenTheInstanceMustBe(instance, MapWith.DerivedB);
       }
     }
 
     [Test]
-    public void OwnerOverrideOnlyAppliesWhenResolvedByOwner()
+    public void OwnerMapOnlyAppliesWhenResolvedByOwner()
     {
-      using (GivenAnOverride(OverrideTypeEnum.ByOwner, target: OverrideWithEnum.DerivedA))
+      using (GivenAMap(MapType.ByOwner, target: MapWith.DerivedA))
       {
         var owner = GivenAnOwner();
         var child = GivenChildCreatedByOwner(owner);
-        ThenTheInstanceMustBe(child, OverrideWithEnum.DerivedA);
+        ThenTheInstanceMustBe(child, MapWith.DerivedA);
         child = GivenAResolutionOutsideAnOwner();
         ThenInstanceMustBeTheBaseType(child);
       }
     }
 
 
-    [TestCase(OverrideTypeEnum.Global, OverrideSourceEnum.Class)]
-    [TestCase(OverrideTypeEnum.ByOwner, OverrideSourceEnum.Class)]
-    [TestCase(OverrideTypeEnum.Global, OverrideSourceEnum.Interface)]
-    [TestCase(OverrideTypeEnum.ByOwner, OverrideSourceEnum.Interface)]
-    public void NestedResolveMustUseOverrideFromOuterScope(OverrideTypeEnum overrideType, OverrideSourceEnum sourceType)
+    [TestCase(MapType.Global, MapSource.Class)]
+    [TestCase(MapType.ByOwner, MapSource.Class)]
+    [TestCase(MapType.Global, MapSource.Interface)]
+    [TestCase(MapType.ByOwner, MapSource.Interface)]
+    public void NestedResolveMustUseMapFromOuterScope(MapType mapType, MapSource sourceType)
     {
-      using (GivenAnOverride(overrideType, sourceType, OverrideWithEnum.DerivedA))
+      using (GivenAMap(mapType, sourceType, MapWith.DerivedA))
       {
         var owner = GivenAnOwner();
 
         INamedClass instance = null;
-        using (GivenAnOverride(overrideType, sourceType, OverrideWithEnum.DerivedB))
+        using (GivenAMap(mapType, sourceType, MapWith.DerivedB))
         {
           instance = WhenOwnerIsAskedForNewChild(owner, sourceType);
-          ThenTheInstanceMustBe(instance, OverrideWithEnum.DerivedA);
+          ThenTheInstanceMustBe(instance, MapWith.DerivedA);
         }
 
         instance = WhenOwnerIsAskedForNewChild(owner, sourceType);
-        ThenTheInstanceMustBe(instance, OverrideWithEnum.DerivedA);
+        ThenTheInstanceMustBe(instance, MapWith.DerivedA);
       }
     }
 
 
-    //todo: make static maps thread-safe:
-    //[TestCase(OverrideTypeEnum.Global)]
-    //[TestCase(OverrideTypeEnum.ByOwner)]
-    //public void ThreadScopedOverridesMustNotAffectEachOther(OverrideTypeEnum overrideType)
-    //{
-    //  Task.WaitAll(
-    //    Task.Run(() =>
-    //      WhenThreadMapsToXThenThreadResolvesToX(overrideType, 
-    //      OverrideSourceEnum.Class, 
-    //      OverrideWithEnum.DerivedA)),
-
-    //    Task.Run(() =>
-    //      WhenThreadMapsToXThenThreadResolvesToX(overrideType, 
-    //      OverrideSourceEnum.Class, 
-    //      OverrideWithEnum.DerivedB))
-    //  );
-    //}
-
-    [TestCase(OverrideTypeEnum.Global)]
-    [TestCase(OverrideTypeEnum.ByOwner)]
-    public void NewThreadsMustInheritAmbientMapping(OverrideTypeEnum overrideType)
+    [TestCase(MapType.Global)]
+    [TestCase(MapType.ByOwner)]
+    public void ThreadScopedMapsMustNotAffectEachOther(MapType mapType)
     {
-      using (GivenAnOverride(overrideType, OverrideSourceEnum.Class, OverrideWithEnum.DerivedA))
-      {
-        Task.WaitAll(Task.Run(() =>
-        {
-          var owner = GivenAnOwner();
-          var instance = WhenOwnerIsAskedForNewChild(owner, OverrideSourceEnum.Class);
-          ThenTheInstanceMustBe(instance, OverrideWithEnum.DerivedA);          
-        }));        
-      }
+      Task.WaitAll(
+        Task.Run(() =>
+          WhenThreadMapsToXThenThreadResolvesToX(mapType,
+          MapSource.Class,
+          MapWith.DerivedA)),
+
+        Task.Run(() =>
+          WhenThreadMapsToXThenThreadResolvesToX(mapType,
+          MapSource.Class,
+          MapWith.DerivedB))
+      );
     }
+
+    //todo: make thread-safe
+    //[TestCase(MapType.Global)]
+    //[TestCase(MapType.ByOwner)]
+    //public void NewThreadsMustInheritAmbientMapping(MapType mapType)
+    //{
+    //  using (GivenAMap(mapType, MapSource.Class, MapWith.DerivedA))
+    //  {
+    //    Task.WaitAll(Task.Run(() =>
+    //    {
+    //      var owner = GivenAnOwner();
+    //      var instance = WhenOwnerIsAskedForNewChild(owner, MapSource.Class);
+    //      ThenTheInstanceMustBe(instance, MapWith.DerivedA);
+    //    }));
+    //  }
+    //}
 
   }
 }

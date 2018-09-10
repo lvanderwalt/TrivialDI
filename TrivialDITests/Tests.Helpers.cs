@@ -12,14 +12,14 @@ namespace TrivialDITests
   {
 
 
-    private void WhenThreadMapsToXThenThreadResolvesToX(OverrideTypeEnum overrideType, OverrideSourceEnum sourceType, OverrideWithEnum target)
+    private void WhenThreadMapsToXThenThreadResolvesToX(MapType overrideType, MapSource sourceType, MapWith target)
     {
       var owner = GivenAnOwner();
       var instance = WhenOwnerIsAskedForNewChild(owner, sourceType);
       ThenInstanceMustBeTheBaseType(instance);
 
       Console.WriteLine($"mapping to {target}");
-      using (GivenAnOverride(overrideType, source: sourceType, target: target))
+      using (GivenAMap(overrideType, source: sourceType, target: target))
       {
         Thread.Sleep(100);
         Console.WriteLine($"resolving for {target}");
@@ -28,27 +28,27 @@ namespace TrivialDITests
       }
     }
 
-    private IDisposable GivenAnOverride(OverrideTypeEnum overrideType,
-        OverrideSourceEnum source = OverrideSourceEnum.Class,
-        OverrideWithEnum target = OverrideWithEnum.DerivedA)
+    private IDisposable GivenAMap(MapType overrideType,
+        MapSource source = MapSource.Class,
+        MapWith target = MapWith.DerivedA)
     {
       switch (source)
       {
-        case OverrideSourceEnum.Class:
+        case MapSource.Class:
           switch (target)
           {
-            case OverrideWithEnum.DerivedA:
+            case MapWith.DerivedA:
               return GivenAnOverride<BaseClass, DerivedA>(overrideType);
-            case OverrideWithEnum.DerivedB:
+            case MapWith.DerivedB:
               return GivenAnOverride<BaseClass, DerivedB>(overrideType);
           }
           break;
-        case OverrideSourceEnum.Interface:
+        case MapSource.Interface:
           switch (target)
           {
-            case OverrideWithEnum.DerivedA:
+            case MapWith.DerivedA:
               return GivenAnOverride<INamedClass, DerivedA>(overrideType);
-            case OverrideWithEnum.DerivedB:
+            case MapWith.DerivedB:
               return GivenAnOverride<INamedClass, DerivedB>(overrideType);
           }
           break;
@@ -56,15 +56,15 @@ namespace TrivialDITests
       return null;
     }
 
-    private IDisposable GivenAnOverride<TSource, TTarget>(OverrideTypeEnum overrideType)
+    private IDisposable GivenAnOverride<TSource, TTarget>(MapType overrideType)
         where TTarget : BaseClass, TSource, new()
     {
       Func<TTarget> resolver = () => new TTarget();
       switch (overrideType)
       {
-        case OverrideTypeEnum.Global:
+        case MapType.Global:
           return default(TSource).Map(resolver);
-        case OverrideTypeEnum.ByOwner:
+        case MapType.ByOwner:
           return default(TSource).Map<OwnerWithChild, TSource>(resolver);
       }
       return null;
@@ -87,29 +87,29 @@ namespace TrivialDITests
       return default(BaseClass).Resolve();
     }
 
-    private INamedClass WhenOwnerIsAskedForNewChild(OwnerWithChild owner, OverrideSourceEnum sourceType = OverrideSourceEnum.Class)
+    private INamedClass WhenOwnerIsAskedForNewChild(OwnerWithChild owner, MapSource sourceType = MapSource.Class)
     {
       switch (sourceType)
       {
-        case OverrideSourceEnum.Class:
+        case MapSource.Class:
           return owner.NewChild();
-        case OverrideSourceEnum.Interface:
+        case MapSource.Interface:
           return owner.NewChildInterface();
         default:
           throw new NotImplementedException();
       }
     }
 
-    private void ThenTheInstanceMustBe(INamedClass instance, OverrideWithEnum expected = OverrideWithEnum.DerivedA)
+    private void ThenTheInstanceMustBe(INamedClass instance, MapWith expected = MapWith.DerivedA)
     {
       Assert.IsNotNull(instance);
-      Type expectedType = expected == OverrideWithEnum.DerivedA ? typeof(DerivedA) : typeof(DerivedB);
+      Type expectedType = expected == MapWith.DerivedA ? typeof(DerivedA) : typeof(DerivedB);
       switch (expected)
       {
-        case OverrideWithEnum.DerivedA:
+        case MapWith.DerivedA:
           Assert.IsTrue(instance.GetType() == expectedType);
           break;
-        case OverrideWithEnum.DerivedB:
+        case MapWith.DerivedB:
           Assert.IsTrue(instance.GetType() == expectedType);
           break;
         default:

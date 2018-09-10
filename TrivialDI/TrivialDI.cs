@@ -91,22 +91,42 @@ namespace System
 
     class MapScope<T> : IDisposable
     {
-      //Holds a static variable for every return type T
+      [ThreadStatic]
       static Func<T> Map;
 
       event Action OnDispose = delegate { };
 
-      class OwnerOverride<TOwner>
+      class OwnerMap<TOwner>
       {
         //Holds a static variable for every TOwner, for every return type T
-        public static Func<T> Map = null;
+        [ThreadStatic]
+        public static Func<T> Map;
+
+        static OwnerMap()
+        {
+          Map = null;
+        }
+      }
+      
+      private MapScope()
+      {
+        
+      }
+
+      public MapScope(Func<T> resolver): this()
+      {
+        if (Map == null)
+        {
+          Map = resolver;
+          OnDispose += () => Map = null;
+        }
       }
 
       public static T Resolve<TOwner>(TOwner owner)
       {
-        if (owner != null && OwnerOverride<TOwner>.Map != null)
+        if (owner != null && OwnerMap<TOwner>.Map != null)
         {
-          return OwnerOverride<TOwner>.Map();
+          return OwnerMap<TOwner>.Map();
         }
         else if (Map != null)
         {
@@ -116,29 +136,15 @@ namespace System
         {
           return Activator.CreateInstance<T>();
         }
-      }
-
-      public MapScope(Func<T> resolver)
-      {
-        if (Map == null)
-        {
-          Map = resolver;
-          OnDispose += () => Map = null;
-        }
-      }
-
-      private MapScope()
-      {
-        //empty
-      }
+      }      
 
       public static MapScope<T> New<TOwner>(Func<T> resolver)
       {
         var scope = new MapScope<T>();
-        if (OwnerOverride<TOwner>.Map == null)
+        if (OwnerMap<TOwner>.Map == null)
         {
-          OwnerOverride<TOwner>.Map = resolver;
-          scope.OnDispose += () => OwnerOverride<TOwner>.Map = null;
+          OwnerMap<TOwner>.Map = resolver;
+          scope.OnDispose += () => OwnerMap<TOwner>.Map = null;
         }
         return scope;
       }
