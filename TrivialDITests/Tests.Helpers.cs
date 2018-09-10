@@ -107,14 +107,13 @@ namespace TrivialDITests
     private void ThenTheInstanceMustBe(INamedClass instance, MapWith expected = MapWith.DerivedA)
     {
       Assert.IsNotNull(instance);
-      Type expectedType = expected == MapWith.DerivedA ? typeof(DerivedA) : typeof(DerivedB);
       switch (expected)
       {
         case MapWith.DerivedA:
-          Assert.IsTrue(instance.GetType() == expectedType);
+          Assert.IsTrue(instance.GetType() == typeof(DerivedA));
           break;
         case MapWith.DerivedB:
-          Assert.IsTrue(instance.GetType() == expectedType);
+          Assert.IsTrue(instance.GetType() == typeof(DerivedB));
           break;
         default:
           throw new NotImplementedException();
@@ -127,6 +126,7 @@ namespace TrivialDITests
     }
 
 
+    //todo: remove owner class. No longer needed since owner-mapping removed.
     class Owner
     {
       public BaseClass Child { get; private set; }

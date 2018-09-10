@@ -11,6 +11,13 @@ namespace TrivialDITests
   [TestFixture]
   public partial class Tests
   {
+    [SetUp]
+    public void SetupEachTest()
+    {
+      //initialize container to indicate outer thread
+      default(object).InitializeDI();
+    }
+
     [Test]
     public void ExampleUsage()
     {
@@ -113,21 +120,38 @@ namespace TrivialDITests
       );
     }
 
-    //todo: make thread-safe
-    //[TestCase(MapType.Global)]
-    //[TestCase(MapType.ByOwner)]
-    //public void NewThreadsMustInheritAmbientMapping(MapType mapType)
-    //{
-    //  using (GivenAMap(MapSource.Class, MapWith.DerivedA))
-    //  {
-    //    Task.WaitAll(Task.Run(() =>
-    //    {
-    //      var owner = GivenAnOwner();
-    //      var instance = WhenOwnerIsAskedForNewChild(owner, MapSource.Class);
-    //      ThenTheInstanceMustBe(instance, MapWith.DerivedA);
-    //    }));
-    //  }
-    //}
+    [Test]
+    public void NewThreadsMustInheritAmbientMapping()
+    {
+      using (GivenAMap(MapSource.Class, MapWith.DerivedA))
+      {
+        Task.WaitAll(Task.Run(() =>
+        {
+          var owner = GivenAnOwner();
+          var instance = WhenOwnerIsAskedForNewChild(owner, MapSource.Class);
+          ThenTheInstanceMustBe(instance, MapWith.DerivedA);
+        }));
+      }
+    }
+
+    [Test]
+    public void MappingInSubThreadsMustInheritAmbientMapping()
+    {
+      using (GivenAMap(MapSource.Class, MapWith.DerivedA))
+      {
+        Task.WaitAll(Task.Run(() =>
+        {
+
+          var owner = GivenAnOwner();
+          using (GivenAMap(MapSource.Class, MapWith.DerivedB))
+          {
+            var instance = WhenOwnerIsAskedForNewChild(owner, MapSource.Class);
+            ThenTheInstanceMustBe(instance, MapWith.DerivedA);
+          }
+          
+        }));
+      }
+    }
 
   }
 }

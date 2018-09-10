@@ -17,6 +17,15 @@ namespace System
   {
 
     /// <summary>
+    /// Initialize the DI container. This should be called on the outer-most "main" thread, during app initialization
+    /// </summary>
+    /// <param name="self"></param>
+    public static void InitializeDI(this object self)
+    {
+      MapScope.Initialize();
+    }
+
+    /// <summary>
     /// Map type T to be resolved as another type T.
     /// 
     /// Example:
@@ -51,27 +60,47 @@ namespace System
       return MapScope<T>.Resolve();
     }
 
+    static class MapScope
+    {
+      //note, ThreadStatic fields only initialise on the first thread reading it.
+      //It will initialise to false in subsequent threads.
+      [ThreadStatic]
+      public static bool IsOuterThread;
+
+      //todo: Find better way to determine outer thread, without needing initialization code.
+      public static void Initialize()
+      {
+        IsOuterThread = true;
+      }
+    }
+
     class MapScope<T> : IDisposable
     {
-      //todo: wip:
-      //note, ThreadStatic only initialises on the main thread.
-      //Subsequent threads will init to default values.
-      [ThreadStatic]
-      static bool IsMainThread = true;
+      static Func<T> _outerMap;
 
       [ThreadStatic]
-      static Func<T> Map;
+      static Func<T> _map;
+      static Func<T> Map
+      {
+        get
+        {
+          return _outerMap ?? _map;
+        }
+        set
+        {
+          _map = value;
+          if (MapScope.IsOuterThread)
+          {
+            _outerMap = _map;
+          }
+        }
+      }
 
       event Action OnDispose = delegate { };
 
       static MapScope()
       {
-        //empty
-      }
-      
-      private MapScope()
-      {
-        //empty
+
       }
 
       public MapScope(Func<T> resolver)
