@@ -116,17 +116,7 @@ namespace TrivialDITests
           throw new NotImplementedException();
       }
     }
-
-    private void ThenTheNameMustBe(string expected, string name)
-    {
-      Assert.AreEqual(expected, name);
-    }
-
-    private void WhenANameAssignedToChild(BaseClass child, string name)
-    {
-      child.Name = name;
-    }
-
+    
     private OwnerWithChild GivenAnOwner()
     {
       return new OwnerWithChild();

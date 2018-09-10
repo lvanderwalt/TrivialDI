@@ -91,14 +91,19 @@ namespace System
 
     class MapScope<T> : IDisposable
     {
+      //todo: wip:
+      //note, ThreadStatic only initialises on the main thread.
+      //Subsequent threads will init to default values.
+      [ThreadStatic]
+      static bool IsMainThread = true;
+
       [ThreadStatic]
       static Func<T> Map;
 
       event Action OnDispose = delegate { };
 
-      class OwnerMap<TOwner>
+      static class OwnerMap<TOwner>
       {
-        //Holds a static variable for every TOwner, for every return type T
         [ThreadStatic]
         public static Func<T> Map;
 
@@ -113,7 +118,7 @@ namespace System
         
       }
 
-      public MapScope(Func<T> resolver): this()
+      public MapScope(Func<T> resolver)
       {
         if (Map == null)
         {
@@ -138,7 +143,7 @@ namespace System
         }
       }      
 
-      public static MapScope<T> New<TOwner>(Func<T> resolver)
+      public static IDisposable New<TOwner>(Func<T> resolver)
       {
         var scope = new MapScope<T>();
         if (OwnerMap<TOwner>.Map == null)

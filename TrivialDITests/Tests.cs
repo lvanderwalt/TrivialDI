@@ -47,16 +47,7 @@ namespace TrivialDITests
       var instance2 = default(BaseClass).Resolve();
       Assert.AreEqual(typeof(BaseClass), instance2.GetType());
     }
-    
-    [Test]
-    public void LazyLoadedChildPropertyMustPersist()
-    {
-      var owner = GivenAnOwner();
-      WhenANameAssignedToChild(owner.Child, "test");
-      ThenInstanceMustBeTheBaseType(owner.Child);
-      ThenTheNameMustBe("test", owner.Child.Name);
-    }
-
+   
     [Test]
     public void ResolvingAnInstanceWithNoMaps()
     {
@@ -84,21 +75,7 @@ namespace TrivialDITests
         var child = WhenOwnerIsAskedForNewChild(owner, sourceType);
         ThenTheInstanceMustBe(child);
       }
-    }
-
-
-    [TestCase(MapType.Global)]
-    [TestCase(MapType.ByOwner)]
-    public void OveriddenChildPropertyMustPersist(MapType mapType)
-    { 
-      using (GivenAMap(mapType))
-      {
-        var owner = GivenAnOwner();
-        WhenANameAssignedToChild(owner.Child, "test");
-        ThenTheNameMustBe("test", owner.Child.Name);
-        ThenTheInstanceMustBe(owner.Child);
-      }
-    }
+    }    
 
     [TestCase(MapType.Global, MapSource.Class)]
     [TestCase(MapType.ByOwner, MapSource.Class)]
