@@ -58,9 +58,8 @@ namespace TrivialDITests
     {      
       using (GivenAMap(sourceType))
       {
-        var owner = GivenAnOwner();
-        var child = WhenOwnerIsAskedForNewChild(owner, sourceType);
-        ThenTheInstanceMustBe(child);
+        var instance = WhenInstanceIsResolved(sourceType);
+        ThenTheInstanceMustBe(instance);
       }
     }    
 
@@ -68,17 +67,16 @@ namespace TrivialDITests
     [TestCase(MapSource.Interface)]
     public void IsolatedMapsMustNotAffectEachOther(MapSource sourceType)
     {
-      var owner = GivenAnOwner();
       INamedClass instance = null;
       using (GivenAMap(source: sourceType, target: MapWith.DerivedA))
       {
-        instance = WhenOwnerIsAskedForNewChild(owner, sourceType);
+        instance = WhenInstanceIsResolved(sourceType);
         ThenTheInstanceMustBe(instance, MapWith.DerivedA);
       }
 
       using (GivenAMap(source: sourceType, target: MapWith.DerivedB))
       {
-        instance = WhenOwnerIsAskedForNewChild(owner, sourceType);
+        instance = WhenInstanceIsResolved(sourceType);
         ThenTheInstanceMustBe(instance, MapWith.DerivedB);
       }
     }
@@ -89,16 +87,14 @@ namespace TrivialDITests
     {
       using (GivenAMap(sourceType, MapWith.DerivedA))
       {
-        var owner = GivenAnOwner();
-
         INamedClass instance = null;
         using (GivenAMap(sourceType, MapWith.DerivedB))
         {
-          instance = WhenOwnerIsAskedForNewChild(owner, sourceType);
+          instance = WhenInstanceIsResolved(sourceType);
           ThenTheInstanceMustBe(instance, MapWith.DerivedA);
         }
 
-        instance = WhenOwnerIsAskedForNewChild(owner, sourceType);
+        instance = WhenInstanceIsResolved(sourceType);
         ThenTheInstanceMustBe(instance, MapWith.DerivedA);
       }
     }
@@ -127,8 +123,7 @@ namespace TrivialDITests
       {
         Task.WaitAll(Task.Run(() =>
         {
-          var owner = GivenAnOwner();
-          var instance = WhenOwnerIsAskedForNewChild(owner, MapSource.Class);
+          var instance = WhenInstanceIsResolved(MapSource.Class);
           ThenTheInstanceMustBe(instance, MapWith.DerivedA);
         }));
       }
@@ -142,10 +137,9 @@ namespace TrivialDITests
         Task.WaitAll(Task.Run(() =>
         {
 
-          var owner = GivenAnOwner();
           using (GivenAMap(MapSource.Class, MapWith.DerivedB))
           {
-            var instance = WhenOwnerIsAskedForNewChild(owner, MapSource.Class);
+            var instance = WhenInstanceIsResolved(MapSource.Class);
             ThenTheInstanceMustBe(instance, MapWith.DerivedA);
           }
           

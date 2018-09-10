@@ -25,8 +25,7 @@ namespace TrivialDITests
 
     private void WhenThreadMapsToXThenThreadResolvesToX(MapSource sourceType, MapWith target)
     {
-      var owner = GivenAnOwner();
-      var instance = WhenOwnerIsAskedForNewChild(owner, sourceType);
+      var instance = WhenInstanceIsResolved( sourceType);
       ThenInstanceMustBeTheBaseType(instance);
 
       Console.WriteLine($"mapping to {target}");
@@ -34,7 +33,7 @@ namespace TrivialDITests
       {
         Thread.Sleep(100);
         Console.WriteLine($"resolving for {target}");
-        instance = WhenOwnerIsAskedForNewChild(owner, sourceType);
+        instance = WhenInstanceIsResolved( sourceType);
         ThenTheInstanceMustBe(instance, target);
       }
     }
@@ -49,25 +48,25 @@ namespace TrivialDITests
           switch (target)
           {
             case MapWith.DerivedA:
-              return GivenAnOverride<BaseClass, DerivedA>();
+              return GivenAMapping<BaseClass, DerivedA>();
             case MapWith.DerivedB:
-              return GivenAnOverride<BaseClass, DerivedB>();
+              return GivenAMapping<BaseClass, DerivedB>();
           }
           break;
         case MapSource.Interface:
           switch (target)
           {
             case MapWith.DerivedA:
-              return GivenAnOverride<INamedClass, DerivedA>();
+              return GivenAMapping<INamedClass, DerivedA>();
             case MapWith.DerivedB:
-              return GivenAnOverride<INamedClass, DerivedB>();
+              return GivenAMapping<INamedClass, DerivedB>();
           }
           break;
       }
       return null;
     }
 
-    private IDisposable GivenAnOverride<TSource, TTarget>()
+    private IDisposable GivenAMapping<TSource, TTarget>()
         where TTarget : BaseClass, TSource, new()
     {
       Func<TTarget> resolver = () => new TTarget();
@@ -75,9 +74,9 @@ namespace TrivialDITests
     }
 
 
-    private BaseClass GivenChildCreatedByOwner(Owner owner)
+    private BaseClass GivenInstanceIsResolved()
     {
-      return owner.NewChild();
+      return default(BaseClass).Resolve();
     }
 
 
@@ -85,20 +84,15 @@ namespace TrivialDITests
     {
       Assert.IsTrue(instance.GetType() == typeof(BaseClass));
     }
-
-    private BaseClass GivenAResolutionOutsideAnOwner()
-    {
-      return default(BaseClass).Resolve();
-    }
-
-    private INamedClass WhenOwnerIsAskedForNewChild(Owner owner, MapSource sourceType = MapSource.Class)
+    
+    private INamedClass WhenInstanceIsResolved(MapSource sourceType = MapSource.Class)
     {
       switch (sourceType)
       {
         case MapSource.Class:
-          return owner.NewChild();
+          return default(BaseClass).Resolve();
         case MapSource.Interface:
-          return owner.NewChildInterface();
+          return default(INamedClass).Resolve();
         default:
           throw new NotImplementedException();
       }
@@ -118,15 +112,10 @@ namespace TrivialDITests
         default:
           throw new NotImplementedException();
       }
-    }
-    
-    private Owner GivenAnOwner()
-    {
-      return new Owner();
-    }
-
+    }   
 
     //todo: remove owner class. No longer needed since owner-mapping removed.
+    /*
     class Owner
     {
       public BaseClass Child { get; private set; }
@@ -145,7 +134,7 @@ namespace TrivialDITests
       {
         return default(INamedClass).Resolve();
       }
-    }
+    }*/
 
     interface INamedClass
     {
