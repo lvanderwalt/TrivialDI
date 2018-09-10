@@ -10,16 +10,27 @@ namespace TrivialDITests
 {
   public partial class Tests
   {
+    public enum MapSource
+    {
+      Class,
+      Interface
+    }
+
+    public enum MapWith
+    {
+      DerivedA,
+      DerivedB
+    }
 
 
-    private void WhenThreadMapsToXThenThreadResolvesToX(MapType overrideType, MapSource sourceType, MapWith target)
+    private void WhenThreadMapsToXThenThreadResolvesToX(MapSource sourceType, MapWith target)
     {
       var owner = GivenAnOwner();
       var instance = WhenOwnerIsAskedForNewChild(owner, sourceType);
       ThenInstanceMustBeTheBaseType(instance);
 
       Console.WriteLine($"mapping to {target}");
-      using (GivenAMap(overrideType, source: sourceType, target: target))
+      using (GivenAMap(source: sourceType, target: target))
       {
         Thread.Sleep(100);
         Console.WriteLine($"resolving for {target}");
@@ -28,7 +39,7 @@ namespace TrivialDITests
       }
     }
 
-    private IDisposable GivenAMap(MapType overrideType,
+    private IDisposable GivenAMap(
         MapSource source = MapSource.Class,
         MapWith target = MapWith.DerivedA)
     {
@@ -38,40 +49,33 @@ namespace TrivialDITests
           switch (target)
           {
             case MapWith.DerivedA:
-              return GivenAnOverride<BaseClass, DerivedA>(overrideType);
+              return GivenAnOverride<BaseClass, DerivedA>();
             case MapWith.DerivedB:
-              return GivenAnOverride<BaseClass, DerivedB>(overrideType);
+              return GivenAnOverride<BaseClass, DerivedB>();
           }
           break;
         case MapSource.Interface:
           switch (target)
           {
             case MapWith.DerivedA:
-              return GivenAnOverride<INamedClass, DerivedA>(overrideType);
+              return GivenAnOverride<INamedClass, DerivedA>();
             case MapWith.DerivedB:
-              return GivenAnOverride<INamedClass, DerivedB>(overrideType);
+              return GivenAnOverride<INamedClass, DerivedB>();
           }
           break;
       }
       return null;
     }
 
-    private IDisposable GivenAnOverride<TSource, TTarget>(MapType overrideType)
+    private IDisposable GivenAnOverride<TSource, TTarget>()
         where TTarget : BaseClass, TSource, new()
     {
       Func<TTarget> resolver = () => new TTarget();
-      switch (overrideType)
-      {
-        case MapType.Global:
-          return default(TSource).Map(resolver);
-        case MapType.ByOwner:
-          return default(TSource).Map<OwnerWithChild, TSource>(resolver);
-      }
-      return null;
+      return default(TSource).Map(resolver);
     }
 
 
-    private BaseClass GivenChildCreatedByOwner(OwnerWithChild owner)
+    private BaseClass GivenChildCreatedByOwner(Owner owner)
     {
       return owner.NewChild();
     }
@@ -87,7 +91,7 @@ namespace TrivialDITests
       return default(BaseClass).Resolve();
     }
 
-    private INamedClass WhenOwnerIsAskedForNewChild(OwnerWithChild owner, MapSource sourceType = MapSource.Class)
+    private INamedClass WhenOwnerIsAskedForNewChild(Owner owner, MapSource sourceType = MapSource.Class)
     {
       switch (sourceType)
       {
@@ -117,29 +121,29 @@ namespace TrivialDITests
       }
     }
     
-    private OwnerWithChild GivenAnOwner()
+    private Owner GivenAnOwner()
     {
-      return new OwnerWithChild();
+      return new Owner();
     }
 
 
-    class OwnerWithChild
+    class Owner
     {
       public BaseClass Child { get; private set; }
 
-      public OwnerWithChild()
+      public Owner()
       {
-        Child = default(BaseClass).Resolve(this);
+        Child = default(BaseClass).Resolve();
       }
 
       internal BaseClass NewChild()
       {
-        return default(BaseClass).Resolve(this);
+        return default(BaseClass).Resolve();
       }
 
       internal INamedClass NewChildInterface()
       {
-        return default(INamedClass).Resolve(this);
+        return default(INamedClass).Resolve();
       }
     }
 

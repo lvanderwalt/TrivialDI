@@ -11,24 +11,6 @@ namespace TrivialDITests
   [TestFixture]
   public partial class Tests
   {
-    public enum MapType
-    {
-      Global,
-      ByOwner
-    };
-
-    public enum MapSource
-    {
-      Class,
-      Interface
-    }
-
-    public enum MapWith
-    {
-      DerivedA,
-      DerivedB
-    }
-
     [Test]
     public void ExampleUsage()
     {
@@ -63,13 +45,11 @@ namespace TrivialDITests
       }
     }
 
-    [TestCase(MapType.Global, MapSource.Class)]
-    [TestCase(MapType.ByOwner, MapSource.Class)]
-    [TestCase(MapType.Global, MapSource.Interface)]
-    [TestCase(MapType.ByOwner, MapSource.Interface)]
-    public void OveriddenClassTypeMustResolve(MapType mapType, MapSource sourceType)
+    [TestCase(MapSource.Class)]
+    [TestCase(MapSource.Interface)]
+    public void OveriddenClassTypeMustResolve(MapSource sourceType)
     {      
-      using (GivenAMap(mapType, sourceType))
+      using (GivenAMap(sourceType))
       {
         var owner = GivenAnOwner();
         var child = WhenOwnerIsAskedForNewChild(owner, sourceType);
@@ -77,53 +57,35 @@ namespace TrivialDITests
       }
     }    
 
-    [TestCase(MapType.Global, MapSource.Class)]
-    [TestCase(MapType.ByOwner, MapSource.Class)]
-    [TestCase(MapType.Global, MapSource.Interface)]
-    [TestCase(MapType.ByOwner, MapSource.Interface)]
-    public void IsolatedMapsMustNotAffectEachOther(MapType mapType, MapSource sourceType)
+    [TestCase(MapSource.Class)]
+    [TestCase(MapSource.Interface)]
+    public void IsolatedMapsMustNotAffectEachOther(MapSource sourceType)
     {
       var owner = GivenAnOwner();
       INamedClass instance = null;
-      using (GivenAMap(mapType, source: sourceType, target: MapWith.DerivedA))
+      using (GivenAMap(source: sourceType, target: MapWith.DerivedA))
       {
         instance = WhenOwnerIsAskedForNewChild(owner, sourceType);
         ThenTheInstanceMustBe(instance, MapWith.DerivedA);
       }
 
-      using (GivenAMap(mapType, source: sourceType, target: MapWith.DerivedB))
+      using (GivenAMap(source: sourceType, target: MapWith.DerivedB))
       {
         instance = WhenOwnerIsAskedForNewChild(owner, sourceType);
         ThenTheInstanceMustBe(instance, MapWith.DerivedB);
       }
     }
 
-    [Test]
-    public void OwnerMapOnlyAppliesWhenResolvedByOwner()
+    [TestCase(MapSource.Class)]
+    [TestCase(MapSource.Interface)]
+    public void NestedResolveMustUseMapFromOuterScope(MapSource sourceType)
     {
-      using (GivenAMap(MapType.ByOwner, target: MapWith.DerivedA))
-      {
-        var owner = GivenAnOwner();
-        var child = GivenChildCreatedByOwner(owner);
-        ThenTheInstanceMustBe(child, MapWith.DerivedA);
-        child = GivenAResolutionOutsideAnOwner();
-        ThenInstanceMustBeTheBaseType(child);
-      }
-    }
-
-
-    [TestCase(MapType.Global, MapSource.Class)]
-    [TestCase(MapType.ByOwner, MapSource.Class)]
-    [TestCase(MapType.Global, MapSource.Interface)]
-    [TestCase(MapType.ByOwner, MapSource.Interface)]
-    public void NestedResolveMustUseMapFromOuterScope(MapType mapType, MapSource sourceType)
-    {
-      using (GivenAMap(mapType, sourceType, MapWith.DerivedA))
+      using (GivenAMap(sourceType, MapWith.DerivedA))
       {
         var owner = GivenAnOwner();
 
         INamedClass instance = null;
-        using (GivenAMap(mapType, sourceType, MapWith.DerivedB))
+        using (GivenAMap(sourceType, MapWith.DerivedB))
         {
           instance = WhenOwnerIsAskedForNewChild(owner, sourceType);
           ThenTheInstanceMustBe(instance, MapWith.DerivedA);
@@ -135,18 +97,17 @@ namespace TrivialDITests
     }
 
 
-    [TestCase(MapType.Global)]
-    [TestCase(MapType.ByOwner)]
-    public void ThreadScopedMapsMustNotAffectEachOther(MapType mapType)
+    [Test]
+    public void ThreadScopedMapsMustNotAffectEachOther()
     {
       Task.WaitAll(
         Task.Run(() =>
-          WhenThreadMapsToXThenThreadResolvesToX(mapType,
+          WhenThreadMapsToXThenThreadResolvesToX(
           MapSource.Class,
           MapWith.DerivedA)),
 
         Task.Run(() =>
-          WhenThreadMapsToXThenThreadResolvesToX(mapType,
+          WhenThreadMapsToXThenThreadResolvesToX(
           MapSource.Class,
           MapWith.DerivedB))
       );
@@ -157,7 +118,7 @@ namespace TrivialDITests
     //[TestCase(MapType.ByOwner)]
     //public void NewThreadsMustInheritAmbientMapping(MapType mapType)
     //{
-    //  using (GivenAMap(mapType, MapSource.Class, MapWith.DerivedA))
+    //  using (GivenAMap(MapSource.Class, MapWith.DerivedA))
     //  {
     //    Task.WaitAll(Task.Run(() =>
     //    {
